@@ -25,4 +25,11 @@ public static Handler handler;
         httpService=new HttpServiceImpl();
         httpService.sendCmd(cmd);
     }
+
+    @Override
+    public void trainModel(String username, String dataStr) {
+        String cmd="?what=train&username="+username;
+        httpService=new HttpServiceImpl();
+        httpService.trainModel(cmd,dataStr);
+    }
 }

@@ -10,4 +10,11 @@ public interface IHttpService {
      * @param cmd
      */
     void sendCmd(String cmd);
+
+    /**
+     * 发送训练模型数据
+     * @param cmd
+     * @param dataStr
+     */
+    void trainModel(String cmd,String dataStr);
 }

@@ -48,6 +48,15 @@
         android:text="加入训练集"
         app:layout_constraintTop_toBottomOf="@id/train_result_et"
         app:layout_constraintLeft_toRightOf="@id/train_choose_photo_btn"
+        app:layout_constraintRight_toRightOf="@id/train_btn"
+        app:layout_constraintHorizontal_weight="1"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"/>
+    <Button
+        android:id="@+id/train_btn"
+        android:text="训练"
+        app:layout_constraintTop_toBottomOf="@id/train_result_et"
+        app:layout_constraintLeft_toRightOf="@id/train_add_btn"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintHorizontal_weight="1"
         android:layout_width="0dp"

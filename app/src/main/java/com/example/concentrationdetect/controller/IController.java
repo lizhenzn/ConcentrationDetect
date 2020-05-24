@@ -17,4 +17,11 @@ public interface IController {
      * @param password
      */
     void regisiter(String username,String password);
+
+    /**
+     * 训练模型
+     * @param username
+     * @param dataStr
+     */
+    void trainModel(String username,String dataStr);
 }

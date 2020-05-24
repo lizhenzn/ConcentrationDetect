@@ -22,9 +22,15 @@ import com.example.concentrationdetect.R;
 import com.example.concentrationdetect.adapter.DetectResultAdapter;
 import com.example.concentrationdetect.bean.DetectResultItem;
 import com.example.concentrationdetect.constant.IPrivilegeCode;
+import com.example.concentrationdetect.controller.IController;
+import com.example.concentrationdetect.controller.impl.ControllerImpl;
 import com.example.concentrationdetect.ui.customView.ActionSheetDialog;
 import com.example.concentrationdetect.utils.ImageUtil;
 import com.example.concentrationdetect.utils.PrivilegeManager;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,13 +39,14 @@ public class TrainModelActivity extends AppCompatActivity implements View.OnTouc
 private DetectResultAdapter detectResultAdapter;
 private List<DetectResultItem> list;
 private ImageView imageView;
-private Button addBtn;
+private Button addBtn,trainBtn;
 private Button choosePhotoBtn;
 private ListView listView;
 private EditText editText;
 private String absoluteRoad;
 private Bitmap choosedBitmap;
 private float grayValue,concentrationValue;
+private JSONArray trainData;//训练数据
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,9 +55,12 @@ private float grayValue,concentrationValue;
     }
     private void init(){
         list=new ArrayList<>();
+        trainData=new JSONArray();
         listView=findViewById(R.id.train_lv);
         addBtn=findViewById(R.id.train_add_btn);
         addBtn.setOnClickListener(this);
+        trainBtn=findViewById(R.id.train_btn);
+        trainBtn.setOnClickListener(this);
         choosePhotoBtn=findViewById(R.id.train_choose_photo_btn);
         choosePhotoBtn.setOnClickListener(this);
         editText=findViewById(R.id.train_result_et);
@@ -63,6 +73,10 @@ private float grayValue,concentrationValue;
     @Override
     public void onClick(View v) {
         switch (v.getId()){
+            case R.id.train_btn:{
+                IController controller=new ControllerImpl();
+                controller.trainModel("test",trainData.toString());
+            }break;
             case R.id.train_add_btn:{
                 concentrationValue=Float.valueOf(String.valueOf(editText.getText()));
                 DetectResultItem item=new DetectResultItem();
@@ -70,6 +84,15 @@ private float grayValue,concentrationValue;
                 item.setConcentrationValue(concentrationValue);
                 list.add(item);
                 detectResultAdapter.notifyDataSetChanged();
+                try {
+                    JSONObject object=new JSONObject();
+                    object.put("grayValue",grayValue);
+                    object.put("concentrationValue",concentrationValue);
+                    trainData.put(object);
+                    Log.e("", "onClick: "+trainData.toString() );
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }break;
             case R.id.train_choose_photo_btn:{
                 new ActionSheetDialog(this)
