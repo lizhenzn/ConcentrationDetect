@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">ConcentrationDetect</string>
+    <string name="detect">检测</string>
+    <string name="mine">我的</string>
+    <string name="no_logined">未登录</string>
+    <string name="sign_in">登录</string>
+    <string name="regisiter">注册</string>
+    <string name="choose_photo">选择图片</string>
+    <string name="invalid_username">Not a valid username</string>
+    <string name="invalid_password">Password must be >5 characters</string>
+    <string name="login_failed">"Login failed"</string>
+    <string name="title_activity_login">Sign in</string>
+    <string name="prompt_user">UserName</string>
+    <string name="prompt_password">Password</string>
+    <string name="empty_username">用户名不能为空</string>
+    <string name="empty_password">密码不能为空</string>
+
+</resources>
