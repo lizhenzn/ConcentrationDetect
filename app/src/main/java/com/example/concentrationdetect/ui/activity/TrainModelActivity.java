@@ -42,11 +42,11 @@ private ImageView imageView;
 private Button addBtn,trainBtn;
 private Button choosePhotoBtn;
 private ListView listView;
-private EditText editText;
+private EditText grayET,concentrationET;
 private String absoluteRoad;
 private Bitmap choosedBitmap;
 private float grayValue,concentrationValue;
-private JSONArray trainData;//训练数据
+public static int groupCount=0;//数据组数
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,8 +54,8 @@ private JSONArray trainData;//训练数据
         init();
     }
     private void init(){
+        groupCount=0;
         list=new ArrayList<>();
-        trainData=new JSONArray();
         listView=findViewById(R.id.train_lv);
         addBtn=findViewById(R.id.train_add_btn);
         addBtn.setOnClickListener(this);
@@ -63,7 +63,8 @@ private JSONArray trainData;//训练数据
         trainBtn.setOnClickListener(this);
         choosePhotoBtn=findViewById(R.id.train_choose_photo_btn);
         choosePhotoBtn.setOnClickListener(this);
-        editText=findViewById(R.id.train_result_et);
+        grayET=findViewById(R.id.train_gray_value_et);
+        concentrationET=findViewById(R.id.train_concentration_value_et);
         imageView=findViewById(R.id.train_photo_iv);
         imageView.setOnTouchListener(this);
         detectResultAdapter=new DetectResultAdapter(this,list);
@@ -74,25 +75,31 @@ private JSONArray trainData;//训练数据
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.train_btn:{
+                // xi=np.array([46.47,44.11,42.57,40.87,35.35,28.93,22.20,18.62,12.30]);
+                // yi=np.array([0.1,0.5,1,2,5,8,10,12,15]);
+                StringBuilder sb=new StringBuilder();
+                for(int i=0;i<list.size();i++){
+                    if(i!=0){
+                        sb.append(",");
+                    }
+                    sb.append(list.get(i).getGrayValue());
+                }
+                for(int i=0;i<list.size();i++){
+                    sb.append(",");
+                    sb.append(list.get(i).getConcentrationValue());
+                }
                 IController controller=new ControllerImpl();
-                controller.trainModel("test",trainData.toString());
+                controller.trainModel(this,"test",sb.toString());
             }break;
             case R.id.train_add_btn:{
-                concentrationValue=Float.valueOf(String.valueOf(editText.getText()));
+                grayValue=Float.valueOf(String.valueOf(grayET.getText()));
+                concentrationValue=Float.valueOf(String.valueOf(concentrationET.getText()));
                 DetectResultItem item=new DetectResultItem();
                 item.setGrayValue(grayValue);
                 item.setConcentrationValue(concentrationValue);
                 list.add(item);
+                groupCount++;
                 detectResultAdapter.notifyDataSetChanged();
-                try {
-                    JSONObject object=new JSONObject();
-                    object.put("grayValue",grayValue);
-                    object.put("concentrationValue",concentrationValue);
-                    trainData.put(object);
-                    Log.e("", "onClick: "+trainData.toString() );
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
             }break;
             case R.id.train_choose_photo_btn:{
                 new ActionSheetDialog(this)
@@ -147,7 +154,8 @@ private JSONArray trainData;//训练数据
         switch (v.getId()){
             case R.id.train_photo_iv:{
                 if(choosedBitmap!=null) {
-                    grayValue = ImageUtil.getGrayValue(choosedBitmap, (int) event.getX(), (int) event.getY());
+                    float grayValue1 = ImageUtil.getGrayValue(choosedBitmap, (int) event.getX(), (int) event.getY());
+                    grayET.setText(String.valueOf(grayValue1));
                 }else{
                     Toast.makeText(this,"没有选择图片",Toast.LENGTH_SHORT).show();
                 }

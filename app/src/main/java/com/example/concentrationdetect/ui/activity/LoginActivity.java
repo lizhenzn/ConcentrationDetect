@@ -19,9 +19,10 @@ import android.widget.Toast;
 import com.example.concentrationdetect.R;
 import com.example.concentrationdetect.controller.IController;
 import com.example.concentrationdetect.controller.impl.ControllerImpl;
+import com.example.concentrationdetect.ui.callback.IAuthenticateCallBack;
 import com.google.android.material.snackbar.Snackbar;
 
-public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
+public class LoginActivity extends AppCompatActivity implements View.OnClickListener , IAuthenticateCallBack {
 private Button loginBtn,regisiterBtn;
 private EditText userET,passwordET;
 private ProgressDialog progressDialog;
@@ -75,7 +76,7 @@ public static MyHandle handle;
                 String user=userET.getText().toString().trim();
                 String password=passwordET.getText().toString().trim();
                 IController controller=new ControllerImpl();
-                controller.login(user,password);
+                controller.login(this,user,password);
               progressDialog.setMessage("登陆中...");
               progressDialog.show();
             }break;
@@ -83,13 +84,87 @@ public static MyHandle handle;
                 String user=userET.getText().toString().trim();
                 String password=passwordET.getText().toString().trim();
                 IController controller=new ControllerImpl();
-                controller.regisiter(user,password);
+                controller.regisiter(this,user,password);
                 progressDialog.setMessage("注册中...");
                 progressDialog.show();
             }break;
             default:break;
         }
     }
+
+    @Override
+    public void loginSuccessed() {
+        this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Log.e("", "loginSuccessed: 回调接口，登陆成功" );
+                progressDialog.setMessage("登陆成功");
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                progressDialog.dismiss();
+            }
+        });
+
+    }
+
+    @Override
+    public void loginFailed() {
+        this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Log.e("", "loginSuccessed: 回调接口，登陆失败" );
+                progressDialog.setMessage("登陆失败");
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                progressDialog.dismiss();
+            }
+        });
+
+    }
+
+    @Override
+    public void regisiterSuccessed() {
+        this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Log.e("", "loginSuccessed: 回调接口，注册成功" );
+                progressDialog.setMessage("注册成功");
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                progressDialog.dismiss();
+            }
+        });
+
+
+        progressDialog.dismiss();
+    }
+
+    @Override
+    public void regisiterFailed() {
+        this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Log.e("", "loginSuccessed: 回调接口，注册失败" );
+                progressDialog.setMessage("注册失败");
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                progressDialog.dismiss();
+            }
+        });
+    }
+
     class MyHandle extends Handler{
         @Override
         public void handleMessage(@NonNull Message msg) {

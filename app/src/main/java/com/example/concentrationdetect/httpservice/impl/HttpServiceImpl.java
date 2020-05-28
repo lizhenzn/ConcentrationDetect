@@ -1,11 +1,13 @@
 package com.example.concentrationdetect.httpservice.impl;
 
+import android.content.Context;
 import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
 
 import com.example.concentrationdetect.httpservice.IHttpService;
 import com.example.concentrationdetect.ui.activity.LoginActivity;
+import com.example.concentrationdetect.ui.callback.IAuthenticateCallBack;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,7 +23,7 @@ import java.net.URL;
 public class HttpServiceImpl implements IHttpService {
 
     @Override
-    public void sendCmd(final String cmd) {
+    public void sendCmd(final Context context, final String cmd) {
        new Thread(new Runnable() {
            @Override
            public void run() {
@@ -39,9 +41,10 @@ public class HttpServiceImpl implements IHttpService {
                            sb.append(new String(buff,0,len,"utf-8"));
                        }
                        Log.e("接收到", "run: "+sb.toString() );
-                       Message message=Message.obtain();
-                       message.setTarget(LoginActivity.handle);
-                       message.sendToTarget();
+//                       Message message=Message.obtain();
+//                       message.setTarget(LoginActivity.handle);
+//                       message.sendToTarget();
+                       ((IAuthenticateCallBack)(context)).loginSuccessed();
                    }
                    urlConnection.disconnect();
                } catch (MalformedURLException e) {
@@ -57,7 +60,7 @@ public class HttpServiceImpl implements IHttpService {
     }
 
     @Override
-    public void trainModel(final String cmd,final String dataStr) {
+    public void trainModel(Context context,final String cmd, final String dataStr) {
         new Thread(new Runnable() {
             @Override
             public void run() {
