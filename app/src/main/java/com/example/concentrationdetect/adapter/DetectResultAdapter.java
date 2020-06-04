@@ -8,16 +8,15 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 
 import com.example.concentrationdetect.R;
-import com.example.concentrationdetect.bean.DetectResultItem;
 
-import java.util.List;
+
+import static com.example.concentrationdetect.ui.activity.TrainModelActivity.groupCount;
+import static com.example.concentrationdetect.ui.activity.TrainModelActivity.list;
 
 public class DetectResultAdapter extends BaseAdapter {
     Context context;
-    List<DetectResultItem> list;
-    public DetectResultAdapter(Context context,List<DetectResultItem> list){
+    public DetectResultAdapter(Context context){
         this.context=context;
-        this.list=list;
     }
     @Override
     public int getCount() {
@@ -48,6 +47,7 @@ public class DetectResultAdapter extends BaseAdapter {
                 //TODO
                 list.remove(position);
                 notifyDataSetChanged();
+                groupCount--;
             }
         });
         return view;

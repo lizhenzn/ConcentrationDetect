@@ -24,6 +24,7 @@
         android:layout_marginLeft="24dp"
         android:layout_marginRight="24dp"
         android:hint="@string/prompt_password"
+        android:inputType="textPassword"
         app:layout_constraintHorizontal_weight="1"
         android:layout_width="0dp"
         android:layout_height="wrap_content"/>

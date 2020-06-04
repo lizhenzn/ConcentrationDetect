@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <item android:id="@+id/train_model_menu"
+        android:icon="@drawable/train"
+        app:showAsAction="always"
         android:title="训练模型"></item>
+    <item android:id="@+id/share_menu"
+        android:icon="@drawable/share"
+        app:showAsAction="always"
+        android:title="分享"></item>
+
 
 </menu>

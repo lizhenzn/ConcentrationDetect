@@ -1,7 +1,9 @@
 package com.example.concentrationdetect.ui.fragment;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -14,7 +16,9 @@ import androidx.annotation.RequiresApi;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 
+import android.os.Environment;
 import android.provider.MediaStore;
+import android.provider.SyncStateContract;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -30,12 +34,22 @@ import android.widget.Toast;
 
 import com.example.concentrationdetect.R;
 import com.example.concentrationdetect.constant.IPrivilegeCode;
+import com.example.concentrationdetect.data.GlobalData;
 import com.example.concentrationdetect.ui.activity.TrainModelActivity;
 import com.example.concentrationdetect.ui.customView.ActionSheetDialog;
 import com.example.concentrationdetect.utils.ImageUtil;
 import com.example.concentrationdetect.utils.PrivilegeManager;
+import com.tencent.mm.opensdk.constants.ConstantsAPI;
+import com.tencent.mm.opensdk.modelmsg.SendMessageToWX;
+import com.tencent.mm.opensdk.modelmsg.WXMediaMessage;
+import com.tencent.mm.opensdk.modelmsg.WXTextObject;
+import com.tencent.mm.opensdk.openapi.IWXAPI;
+import com.tencent.mm.opensdk.openapi.WXAPIFactory;
 
 import java.io.File;
+import java.io.IOException;
+
+import static com.tencent.mm.opensdk.modelmsg.SendMessageToWX.Req.WXSceneSession;
 
 public class DetectFragment extends Fragment implements View.OnClickListener,View.OnTouchListener {
     private TextView detectResultTV;
@@ -43,6 +57,11 @@ public class DetectFragment extends Fragment implements View.OnClickListener,Vie
     private Bitmap choosedBitmap;
     String absoluteRoad;
     int touchX,touchY;
+    // APP_ID 替换为你的应用从官方网站申请到的合法appID
+    private static final String APP_ID = "wx88888888";
+
+    // IWXAPI 是第三方app和微信通信的openApi接口
+    private IWXAPI api;
     public DetectFragment() {
         // Required empty public constructor
     }
@@ -54,6 +73,7 @@ public class DetectFragment extends Fragment implements View.OnClickListener,Vie
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         PrivilegeManager.checkNeedPermissions(getContext(),getActivity());
+        regToWx();
     }
 
     @Override
@@ -72,13 +92,29 @@ public class DetectFragment extends Fragment implements View.OnClickListener,Vie
         choosePhotoBtn.setOnClickListener(this);
         return view;
     }
+    private void regToWx() {
+        // 通过WXAPIFactory工厂，获取IWXAPI的实例
+        api = WXAPIFactory.createWXAPI(getContext(), APP_ID, true);
+
+        // 将应用的appId注册到微信
+        api.registerApp(APP_ID);
+
+        //建议动态监听微信启动广播进行注册到微信
+        getContext().registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                // 将该app注册到微信
+                api.registerApp(APP_ID);
+            }
+        }, new IntentFilter(ConstantsAPI.ACTION_REFRESH_WXAPP));
+
+    }
 
 
     @Override
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.detect_btn:{
-                Log.e("", "onClick: 点击检测按钮" );
                 if((touchX==-1)||(touchY==-1)){
                     Toast.makeText(getContext(),"没有选定检测区域",Toast.LENGTH_SHORT).show();
                 }else{
@@ -86,6 +122,18 @@ public class DetectFragment extends Fragment implements View.OnClickListener,Vie
                     //TODO 得到的结果根据特定函数估计浓度
                     String result="灰度值为"+grayValue;
                     detectResultTV.setText(result);
+                    int index=-1;
+                    if((index=GlobalData.currentModelIndex)>=0){
+                        float[] parms=GlobalData.models.get(index).getArguments();
+                        float c_value=parms[0]*grayValue+parms[1];
+                        result="灰度值为"+grayValue+"\n"
+                                +"浓度值为："+c_value;
+                        detectResultTV.setText(result);
+                        Toast.makeText(getContext(),"此点浓度值为："+c_value+"mg/L",Toast.LENGTH_SHORT).show();
+                    }else{
+                        Toast.makeText(getContext(),"没有选择使用的模型，请先选择默认使用模型",Toast.LENGTH_SHORT).show();
+                        return;
+                    }
                 }
             }break;
             case R.id.choose_photo_btn:{
@@ -113,16 +161,22 @@ public class DetectFragment extends Fragment implements View.OnClickListener,Vie
                                 if(!PrivilegeManager.checkCamera(getContext()))
                                     PrivilegeManager.checkNeedPermissions(getContext(),getActivity());
                                 else {
-                                    Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);//用来打开相机的Intent
-                                    if (takePhotoIntent.resolveActivity(getActivity().getPackageManager()) != null) {//这句作用是如果没有相机则该应用不会闪退，要是不加这句则当系统没有相机应用的时候该应用会闪退
-//                                        File picFile = creatImageFile(BASE_DIR, 1);
-//                                        upFileName.add(picFile.getName());
-//                                        upSeason.add(SEASON_DEFAULT);
-//                                        Uri imageUri = FileProvider.getUriForFile(getContext(),
-//                                                "com.example.cm",
-//                                                picFile);
-//                                        takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
-//                                        startActivityForResult(takePhotoIntent, IPrivilegeCode.OPEN_CAMERA);//启动相机
+                                    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);//用来打开相机的Intent
+                                    if (intent.resolveActivity(getActivity().getPackageManager()) != null) {//这句作用是如果没有相机则该应用不会闪退，要是不加这句则当系统没有相机应用的时候该应用会闪退
+                                        File file = new File(getContext().getExternalCacheDir()
+                                                + "/tempImage.jpg");
+                                        if(!file.exists()){
+                                            try {
+                                                file.createNewFile();
+                                            } catch (IOException e) {
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                        absoluteRoad = file.getAbsolutePath();
+                                        Uri photoUri = FileProvider.getUriForFile(getContext(),"FileUri1",file);//Uri.fromFile(file);//获取文件的uri
+                                        Intent takePhotoIntent=new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                                        takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT,photoUri);
+                                        startActivityForResult(takePhotoIntent,IPrivilegeCode.TAKE_PICTURE);
                                     } else {
                                         Toast.makeText(getContext(),
                                                 "没有相机，无法完成操作",
@@ -153,6 +207,10 @@ public class DetectFragment extends Fragment implements View.OnClickListener,Vie
                     detectIV.setImageBitmap(choosedBitmap);
                 }
 
+            }break;
+            case IPrivilegeCode.TAKE_PICTURE:{
+                choosedBitmap= BitmapFactory.decodeFile(absoluteRoad);
+                detectIV.setImageBitmap(choosedBitmap);
             }break;
             default:break;
         }
@@ -202,6 +260,24 @@ public class DetectFragment extends Fragment implements View.OnClickListener,Vie
             case R.id.train_model_menu:{
                 Intent intent=new Intent(getContext(), TrainModelActivity.class);
                 startActivity(intent);
+            }break;
+            case R.id.share_menu:{
+                Log.e("", "onOptionsItemSelected: 点击了分享" );
+                //初始化一个 WXTextObject 对象，填写分享的文本内容
+                WXTextObject textObj = new WXTextObject();
+                textObj.text = "text";
+
+                //用 WXTextObject 对象初始化一个 WXMediaMessage 对象
+                WXMediaMessage msg = new WXMediaMessage();
+                msg.mediaObject = textObj;
+                msg.description = "text";
+                SendMessageToWX.Req req = new SendMessageToWX.Req();
+                req.transaction = String.valueOf(System.currentTimeMillis());  //transaction字段用与唯一标示一个请求
+                req.message = msg;
+                req.scene = WXSceneSession;//分享到微信会话中
+
+                //调用api接口，发送数据到微信
+                api.sendReq(req);
             }break;
             default:break;
         }

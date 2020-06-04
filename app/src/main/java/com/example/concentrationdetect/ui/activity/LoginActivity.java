@@ -9,20 +9,30 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.concentrationdetect.R;
+import com.example.concentrationdetect.constant.IAuthenticateResult;
+import com.example.concentrationdetect.constant.ICmdType;
+import com.example.concentrationdetect.constant.ILoginResult;
+import com.example.concentrationdetect.constant.IRegisiterResult;
 import com.example.concentrationdetect.controller.IController;
 import com.example.concentrationdetect.controller.impl.ControllerImpl;
+import com.example.concentrationdetect.data.GlobalData;
 import com.example.concentrationdetect.ui.callback.IAuthenticateCallBack;
 import com.google.android.material.snackbar.Snackbar;
 
-public class LoginActivity extends AppCompatActivity implements View.OnClickListener , IAuthenticateCallBack {
+import org.json.JSONException;
+import org.json.JSONObject;
+
+public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 private Button loginBtn,regisiterBtn;
 private EditText userET,passwordET;
 private ProgressDialog progressDialog;
@@ -55,6 +65,7 @@ public static MyHandle handle;
         progressDialog.setTitle("");
         //progressDialog.setMessage("登陆中...");
         progressDialog.setCancelable(false);
+
         //progressDialog.show();
 
     }
@@ -76,15 +87,15 @@ public static MyHandle handle;
                 String user=userET.getText().toString().trim();
                 String password=passwordET.getText().toString().trim();
                 IController controller=new ControllerImpl();
-                controller.login(this,user,password);
-              progressDialog.setMessage("登陆中...");
+                controller.login(user,password);
+              progressDialog.setMessage("登录中...");
               progressDialog.show();
             }break;
             case R.id.regisiter_btn:{
                 String user=userET.getText().toString().trim();
                 String password=passwordET.getText().toString().trim();
                 IController controller=new ControllerImpl();
-                controller.regisiter(this,user,password);
+                controller.regisiter(user,password);
                 progressDialog.setMessage("注册中...");
                 progressDialog.show();
             }break;
@@ -93,76 +104,14 @@ public static MyHandle handle;
     }
 
     @Override
-    public void loginSuccessed() {
-        this.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Log.e("", "loginSuccessed: 回调接口，登陆成功" );
-                progressDialog.setMessage("登陆成功");
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                progressDialog.dismiss();
-            }
-        });
-
-    }
-
-    @Override
-    public void loginFailed() {
-        this.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Log.e("", "loginSuccessed: 回调接口，登陆失败" );
-                progressDialog.setMessage("登陆失败");
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                progressDialog.dismiss();
-            }
-        });
-
-    }
-
-    @Override
-    public void regisiterSuccessed() {
-        this.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Log.e("", "loginSuccessed: 回调接口，注册成功" );
-                progressDialog.setMessage("注册成功");
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                progressDialog.dismiss();
-            }
-        });
-
-
-        progressDialog.dismiss();
-    }
-
-    @Override
-    public void regisiterFailed() {
-        this.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Log.e("", "loginSuccessed: 回调接口，注册失败" );
-                progressDialog.setMessage("注册失败");
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                progressDialog.dismiss();
-            }
-        });
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()){
+            case android.R.id.home:{
+                this.finish();
+            }break;
+            default:break;
+        }
+        return true;
     }
 
     class MyHandle extends Handler{
@@ -170,7 +119,41 @@ public static MyHandle handle;
         public void handleMessage(@NonNull Message msg) {
             super.handleMessage(msg);
             progressDialog.dismiss();
-            Toast.makeText(LoginActivity.this,"SUCCESS!",Toast.LENGTH_LONG).show();
+            StringBuilder sb= (StringBuilder) msg.obj;
+            System.out.println(sb.toString());
+            String what=null;
+            int result=0;
+            String sResult=null;
+            try {
+                JSONObject jsonObject=new JSONObject(sb.toString());
+                what=jsonObject.getString("what");
+                result= Integer.parseInt(jsonObject.getString("result"));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            if(what.equalsIgnoreCase(ICmdType.LOGIN)){
+                if(result== ILoginResult.SUCCESS){
+                    sResult="登陆成功";
+                    GlobalData.user.setUserName(userET.getText().toString().trim());
+                    GlobalData.isLogined=true;
+                    //登陆成功之后获取该用户之前训练的模型
+                    IController controller=new ControllerImpl();
+                    controller.getModels();
+
+                }else {
+                    sResult="登陆失败";
+                }
+            }else if(what.equalsIgnoreCase(ICmdType.REGISITER)){
+                if(result== IRegisiterResult.SUCCESS){
+                    sResult="注册成功";
+                }else if(result==IRegisiterResult.FAILED){
+                    sResult="注册失败";
+                }else{
+                    sResult="注册账号冲突";
+                }
+            }
+            Toast.makeText(LoginActivity.this,sResult,Toast.LENGTH_LONG).show();
         }
     }
 }

@@ -9,7 +9,7 @@
         android:id="@+id/train_photo_iv"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
-        android:src="@drawable/unlogin"
+        android:src="@drawable/detect"
         app:layout_constraintRight_toRightOf="parent"
         android:layout_width="wrap_content"
         android:layout_height="240dp"/>
@@ -25,6 +25,8 @@
         android:layout_height="wrap_content">
         <TextView
             android:text="灰度值："
+            android:layout_marginLeft="6dp"
+            android:textSize="24sp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
         <EditText
@@ -46,11 +48,13 @@
         <TextView
             android:id="@+id/train_result_tv"
             android:text="此点浓度值："
+            android:gravity="center_vertical"
             android:textSize="24sp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
         <EditText
             android:id="@+id/train_concentration_value_et"
+            android:textSize="24sp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
     </LinearLayout>
@@ -86,15 +90,17 @@
     <LinearLayout
         android:id="@+id/train_ll"
         app:layout_constraintTop_toBottomOf="@id/train_add_btn"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_weight="1"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="0dp">
         <ListView
             android:id="@+id/train_lv"
             app:layout_constraintTop_toBottomOf="@id/train_add_btn"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="match_parent"/>
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

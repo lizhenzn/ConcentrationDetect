@@ -8,6 +8,7 @@ public interface IPrivilegeCode {
     final int OPEN_ALBUM=1;//打开相册请求码
     final int REQUEST_CAMERA=2;//打开相册权限
     final int OPEN_CAMERA=3;//打开相册
+    final int TAKE_PICTURE=4;//拍照请求码
 
 
 

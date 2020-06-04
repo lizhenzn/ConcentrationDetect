@@ -14,5 +14,9 @@
     <string name="prompt_password">Password</string>
     <string name="empty_username">用户名不能为空</string>
     <string name="empty_password">密码不能为空</string>
+    <string name="mine_model">我的模型</string>
+    <string name="signout">退出登录</string>
+    <string name="model_name">模型名</string>
+    <string name="model">模型</string>
 
 </resources>

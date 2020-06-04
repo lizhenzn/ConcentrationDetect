@@ -9,12 +9,15 @@ import androidx.viewpager.widget.ViewPager;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.view.View;
 import android.view.Window;
 import android.widget.RadioButton;
 
 import com.example.concentrationdetect.R;
 import com.example.concentrationdetect.adapter.MainFragmentPagerAdapter;
+import com.example.concentrationdetect.bean.User;
+import com.example.concentrationdetect.data.GlobalData;
 import com.example.concentrationdetect.ui.fragment.DetectFragment;
 import com.example.concentrationdetect.ui.fragment.MineFragment;
 import com.example.concentrationdetect.utils.PrivilegeManager;
@@ -31,14 +34,13 @@ private MainFragmentPagerAdapter pagerAdapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);//不显示标题
+        //requestWindowFeature(Window.FEATURE_NO_TITLE);//不显示标题
         setContentView(R.layout.activity_main);
         ActionBar actionBar=getSupportActionBar();
         if(actionBar!=null){
-            actionBar.setDisplayShowTitleEnabled(false);
+            //actionBar.setDisplayShowTitleEnabled(false);
         }
         setContentView(R.layout.activity_main);
-
         initWidget();
         initData();
     }
@@ -59,6 +61,10 @@ private MainFragmentPagerAdapter pagerAdapter;
      * 初始化数据
      */
     private void initData(){
+        GlobalData.isLogined=false;
+        GlobalData.user=new User();
+        GlobalData.models=new ArrayList<>();
+        GlobalData.currentModelIndex=-1;
         fragmentList=new ArrayList<>();
         fragmentManager=getSupportFragmentManager();
         fragmentList.add(new DetectFragment());
@@ -86,10 +92,11 @@ private MainFragmentPagerAdapter pagerAdapter;
      * 进入检测页面
      */
     private void chooseDetect(){
-        Drawable detectDraw = getResources().getDrawable(R.drawable.ic_launcher_background);
+        setTitle("检测");
+        Drawable detectDraw = getResources().getDrawable(R.drawable.detect);
         detectDraw.setBounds(0, 0, 69, 69);//第一0是距左右边距离，第二0是距上下边距离，第三69长度,第四宽度
         detectRB.setCompoundDrawables(null, detectDraw, null, null);//只放上面
-        Drawable mineDraw = getResources().getDrawable(R.drawable.unlogin);
+        Drawable mineDraw = getResources().getDrawable(R.drawable.ic_launcher_background);
         mineDraw.setBounds(0, 0, 69, 69);//第一0是距左右边距离，第二0是距上下边距离，第三69长度,第四宽度
         mineRB.setCompoundDrawables(null, mineDraw, null, null);//只放上面
     }
@@ -97,6 +104,7 @@ private MainFragmentPagerAdapter pagerAdapter;
      * 进入我的页面
      */
     private void chooseMine(){
+        setTitle("我的");
         Drawable detectDraw = getResources().getDrawable(R.drawable.ic_launcher_background);
         detectDraw.setBounds(0, 0, 69, 69);//第一0是距左右边距离，第二0是距上下边距离，第三69长度,第四宽度
         detectRB.setCompoundDrawables(null, detectDraw, null, null);//只放上面
@@ -104,6 +112,7 @@ private MainFragmentPagerAdapter pagerAdapter;
         mineDraw.setBounds(0, 0, 69, 69);//第一0是距左右边距离，第二0是距上下边距离，第三69长度,第四宽度
         mineRB.setCompoundDrawables(null, mineDraw, null, null);//只放上面
     }
+
 
 
 }
